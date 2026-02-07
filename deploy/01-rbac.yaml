@@ -1,0 +1,41 @@
+# 1. The "ID Card" (ServiceAccount)
+# This gives your Agent an identity inside the cluster.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sentinel-agent-sa
+  namespace: default
+---
+# 2. The "Keys" (ClusterRole)
+# This lists exactly what actions are allowed.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: sentinel-agent-role
+rules:
+  # Permission A: The "Eyes"
+  # Allowed to READ pods, logs, and events to detect crashes.
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "events"]
+    verbs: ["get", "watch", "list"]
+
+  # Permission B: The "Hand"
+  # Allowed to UPDATE deployments (e.g., change memory limits).
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "update", "patch"]
+---
+# 3. Connecting the ID to the Keys (ClusterRoleBinding)
+# This grants the "Keys" to the "ID Card".
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: sentinel-agent-binding
+subjects:
+  - kind: ServiceAccount
+    name: sentinel-agent-sa
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: sentinel-agent-role
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentinel-brain
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sentinel-brain
+  template:
+    metadata:
+      labels:
+        app: sentinel-brain
+    spec:
+      containers:
+      - name: brain
+        image: sentinel-brain:v1
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8081
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentinel-brain
+spec:
+  selector:
+    app: sentinel-brain
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8081
