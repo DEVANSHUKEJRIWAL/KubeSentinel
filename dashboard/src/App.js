@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 function App() {
@@ -11,20 +10,33 @@ function App() {
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:8081/predict');
-        const { current_cpu, predicted_cpu, action } = response.data;
+        // Fetch from the Brain
+        const response = await fetch('http://localhost:8081/predict');
+        const data = await response.json();
+        
+        // Destructure the response (Note: data.current_cpu, NOT current_cpu)
+        const { current_cpu, predicted_cpu, action } = data;
         const timestamp = new Date().toLocaleTimeString();
 
         // 1. Update Graph Data
         setDataPoints(prev => {
-          const newData = [...prev, { time: timestamp, cpu: current_cpu, pred: predicted_cpu }];
-          return newData.slice(-20); // Keep only last 20 points
+          // Create new point
+          const newPoint = { 
+            time: timestamp, 
+            cpu: current_cpu, 
+            pred: predicted_cpu 
+          };
+          // Keep only last 20 points
+          const newData = [...prev, newPoint];
+          return newData.slice(-20); 
         });
 
-        // 2. Update Status
-        if (action === "scale_up") {
+        // 2. Update Status (THE FIX IS HERE)
+        // We now check for "SCALING", which matches the Python backend.
+        if (action === "SCALING") {
           setSystemStatus("CRITICAL - SCALING UP");
-          addLog(`⚠️ Alert! CPU: ${current_cpu.toFixed(4)} | Pred: ${predicted_cpu.toFixed(4)} | Action: SCALING`);
+          // Add to log (Trigger the state update)
+          setLogs(prev => [`⚠️ Alert! CPU: ${current_cpu.toFixed(2)}% | Pred: ${predicted_cpu.toFixed(2)}%`, ...prev].slice(0, 5));
         } else {
           setSystemStatus("NORMAL");
         }
@@ -32,7 +44,7 @@ function App() {
       } catch (error) {
         console.error("Error fetching data:", error);
       }
-    }, 2000);
+    }, 2000); // Poll every 2 seconds
 
     return () => clearInterval(interval);
   }, []);
