@@ -13,18 +13,24 @@ function App() {
         // Fetch from the Brain
         const response = await fetch('http://localhost:8081/predict');
         const data = await response.json();
-        
-        // Destructure the response (Note: data.current_cpu, NOT current_cpu)
-        const { current_cpu, predicted_cpu, action } = data;
+
+        // Brain still warming up (no Prometheus data yet)
+        if (data.status === "warning") {
+          setSystemStatus("WAITING FOR DATA");
+          return;
+        }
+
+        const { current_cpu, predicted_cpu, interval, recommended_replicas, action } = data;
         const timestamp = new Date().toLocaleTimeString();
 
         // 1. Update Graph Data
         setDataPoints(prev => {
           // Create new point
-          const newPoint = { 
-            time: timestamp, 
-            cpu: current_cpu, 
-            pred: predicted_cpu 
+          const newPoint = {
+            time: timestamp,
+            cpu: current_cpu,
+            pred: predicted_cpu,
+            upper: interval ? interval.upper : predicted_cpu
           };
           // Keep only last 20 points
           const newData = [...prev, newPoint];
@@ -33,10 +39,10 @@ function App() {
 
         // 2. Update Status (THE FIX IS HERE)
         // We now check for "SCALING", which matches the Python backend.
-        if (action === "SCALING") {
+        if (action === "scale_up") {
           setSystemStatus("CRITICAL - SCALING UP");
           // Add to log (Trigger the state update)
-          setLogs(prev => [`⚠️ Alert! CPU: ${current_cpu.toFixed(2)}% | Pred: ${predicted_cpu.toFixed(2)}%`, ...prev].slice(0, 5));
+          setLogs(prev => [`⚠️ Alert! CPU: ${current_cpu.toFixed(3)} | Pred upper: ${newPoint.upper.toFixed(3)} → ${recommended_replicas} replicas`, ...prev].slice(0, 5));
         } else {
           setSystemStatus("NORMAL");
         }
@@ -81,6 +87,7 @@ function App() {
             <Legend />
             <Line type="monotone" dataKey="cpu" stroke="#8884d8" name="Actual CPU" strokeWidth={3} dot={false} />
             <Line type="monotone" dataKey="pred" stroke="#82ca9d" name="AI Prediction" strokeWidth={3} strokeDasharray="5 5" dot={false} />
+            <Line type="monotone" dataKey="upper" stroke="#ffcc00" name="Forecast Upper (scale on)" strokeWidth={1} strokeDasharray="2 2" dot={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>

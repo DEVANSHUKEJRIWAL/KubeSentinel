@@ -1,0 +1,27 @@
+{
+  "meta": {
+    "source": "benchmarks/cpu_series_sample.csv",
+    "source_kind": "synthetic",
+    "series_len": 120,
+    "n_forecasts": 90,
+    "initial": 30,
+    "season": 40
+  },
+  "results": {
+    "arima": {
+      "sMAPE": 8.042,
+      "MAPE": 10.621,
+      "RMSE": 0.007487
+    },
+    "naive": {
+      "sMAPE": 11.254,
+      "MAPE": 12.08,
+      "RMSE": 0.010768
+    },
+    "seasonal_naive": {
+      "sMAPE": 39.614,
+      "MAPE": 27.661,
+      "RMSE": 0.043888
+    }
+  }
+}

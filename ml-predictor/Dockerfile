@@ -13,5 +13,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src/ src/
 
-# Run the Brain
-CMD ["python", "src/main.py"]
+# Run the Brain (FastAPI via uvicorn; --app-dir puts src/ on the path)
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8081", "--app-dir", "src"]
