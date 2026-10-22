@@ -1,0 +1,25 @@
+# Plain CPU HorizontalPodAutoscaler for victim-app.
+# Two roles:
+#   1. Phase 0 reactive baseline  -- on its own, this is the "reactive HPA only"
+#      comparison target: it scales out *after* CPU crosses the target.
+#   2. Phase 3 steady-state HPA   -- the Sentinel agent raises its minReplicas
+#      ahead of a forecast spike, then relaxes it after the stabilization window.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: victim-app-hpa
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: victim-app
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

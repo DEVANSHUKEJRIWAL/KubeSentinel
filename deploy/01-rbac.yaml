@@ -20,10 +20,11 @@ rules:
     verbs: ["get", "watch", "list"]
 
   # Permission B: The "Hand"
-  # Allowed to UPDATE deployments (e.g., change memory limits).
-  - apiGroups: ["apps"]
-    resources: ["deployments", "replicasets"]
-    verbs: ["get", "list", "update", "patch"]
+  # Allowed to READ/PATCH HorizontalPodAutoscalers to raise/relax minReplicas
+  # ahead of a predicted spike (predictive scaling, Phase 3 Option A).
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch", "update", "patch"]
 ---
 # 3. Connecting the ID to the Keys (ClusterRoleBinding)
 # This grants the "Keys" to the "ID Card".
