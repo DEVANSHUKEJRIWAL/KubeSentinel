@@ -1,27 +1,27 @@
 {
   "meta": {
-    "source": "benchmarks/cpu_series_sample.csv",
-    "source_kind": "synthetic",
-    "series_len": 120,
-    "n_forecasts": 90,
+    "source": "prometheus",
+    "source_kind": "prometheus",
+    "series_len": 58,
+    "n_forecasts": 28,
     "initial": 30,
     "season": 40
   },
   "results": {
     "arima": {
-      "sMAPE": 8.042,
-      "MAPE": 10.621,
-      "RMSE": 0.007487
+      "sMAPE": 20.719,
+      "MAPE": 38.398,
+      "RMSE": 0.004306
     },
     "naive": {
-      "sMAPE": 11.254,
-      "MAPE": 12.08,
-      "RMSE": 0.010768
+      "sMAPE": 26.099,
+      "MAPE": 54.296,
+      "RMSE": 0.00525
     },
     "seasonal_naive": {
-      "sMAPE": 39.614,
-      "MAPE": 27.661,
-      "RMSE": 0.043888
+      "sMAPE": 75.398,
+      "MAPE": 67.722,
+      "RMSE": 0.013291
     }
   }
 }

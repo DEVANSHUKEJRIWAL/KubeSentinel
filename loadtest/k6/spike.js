@@ -14,6 +14,7 @@ export const options = {
     http_req_failed: ['rate<0.01'],                 // goal: ~zero failed requests
     http_req_duration: ['p(95)<500', 'p(99)<1000'], // ms
   },
+  summaryTrendStats: ['avg', 'med', 'p(95)', 'p(99)', 'max'], // p(99) isn't computed by default
 };
 
 const TARGET = __ENV.TARGET || 'http://localhost:8080';
@@ -28,12 +29,13 @@ export default function () {
 export function handleSummary(data) {
   const d = data.metrics.http_req_duration.values;
   const f = data.metrics.http_req_failed.values;
+  const total = data.metrics.http_reqs.values.count;
   const out = {
     p95_ms: d['p(95)'],
     p99_ms: d['p(99)'],
     error_rate: f.rate,
-    failed_requests: f.fails,
-    total_requests: data.metrics.http_reqs.values.count,
+    failed_requests: Math.round((f.rate || 0) * total), // Rate.passes/fails are true/false counts, not failures
+    total_requests: total,
   };
   const path = __ENV.K6_SUMMARY_OUT || 'benchmarks/k6_summary.json';
   return {

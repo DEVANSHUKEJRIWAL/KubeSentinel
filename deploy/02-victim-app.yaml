@@ -18,6 +18,10 @@ spec:
         - name: nginx
           image: nginx:latest
           resources:
+            # requests are REQUIRED for a CPU-utilization HPA to compute a %.
+            requests:
+              memory: "32Mi"
+              cpu: "50m"
             limits:
               # 64Mi is very small. Nginx will crash if we push it hard.
               memory: "64Mi"

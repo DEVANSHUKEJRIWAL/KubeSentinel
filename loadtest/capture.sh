@@ -38,7 +38,13 @@ trap 'kill "$REC_PID" 2>/dev/null || true' EXIT
 # 2. Run the identical spike.
 case "$TOOL" in
   k6)
+    # k6 exits 99 when a threshold is breached -- that's a valid result under
+    # load, not a capture failure, so don't let it abort the script.
+    set +e
     K6_SUMMARY_OUT="$LOAD_JSON" k6 run -e TARGET="$TARGET" "$HERE/k6/spike.js"
+    rc=$?
+    set -e
+    [ "$rc" -eq 0 ] || [ "$rc" -eq 99 ] || { echo "k6 failed (rc=$rc)" >&2; exit "$rc"; }
     echo "load results: $LOAD_JSON"
     ;;
   locust)
